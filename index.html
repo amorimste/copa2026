@@ -332,6 +332,82 @@ body {
 }
 #toast.show { transform: translateX(-50%) translateY(0); }
 
+/* ─── SYNC BAR ────────────────────────────────────────── */
+#sync-bar {
+  background: var(--surface); border-bottom: 1px solid var(--border);
+  padding: .5rem 1rem; display: flex; align-items: center; gap: .6rem;
+  flex-wrap: wrap; font-family: 'Barlow Condensed', sans-serif; font-size: .85rem;
+}
+.sync-dot {
+  width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+  background: var(--muted); transition: background .3s;
+}
+.sync-dot.ok     { background: var(--green-ok); }
+.sync-dot.saving { background: var(--gold); animation: pulse .8s infinite; }
+.sync-dot.err    { background: var(--red); }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.4} }
+.sync-label { color: var(--muted); flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sync-label span { color: var(--text); }
+.btn-sync-setup {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: .75rem; letter-spacing: 1px; text-transform: uppercase;
+  padding: .3rem .7rem; border-radius: 6px; border: 1px solid var(--border);
+  background: transparent; color: var(--muted); cursor: pointer; transition: all .2s;
+  flex-shrink: 0;
+}
+.btn-sync-setup:hover { color: var(--text); border-color: var(--muted); }
+
+/* ─── MODAL ───────────────────────────────────────────── */
+.modal-overlay {
+  position: fixed; inset: 0; background: rgba(0,0,0,.75);
+  z-index: 500; display: none; align-items: center; justify-content: center; padding: 1rem;
+}
+.modal-overlay.open { display: flex; }
+.modal {
+  background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+  padding: 1.5rem; max-width: 480px; width: 100%; animation: fadeUp .25s ease;
+  max-height: 90vh; overflow-y: auto;
+}
+.modal-title {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.4rem; letter-spacing: 1px; margin-bottom: .3rem;
+}
+.modal-sub { font-size: .8rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.6; }
+.modal-sub a { color: #60a5fa; }
+.modal-code {
+  width: 100%; min-height: 90px; background: var(--bg);
+  border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: monospace; font-size: .72rem;
+  padding: .6rem; resize: none; outline: none; word-break: break-all;
+}
+.modal-code:focus { border-color: #3b82f6; }
+.modal-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  border-radius: 8px; color: var(--text); font-family: 'Barlow', sans-serif;
+  font-size: .85rem; padding: .55rem .75rem; outline: none; margin-bottom: .5rem;
+}
+.modal-input:focus { border-color: #3b82f6; }
+.modal-actions { display: flex; gap: .5rem; margin-top: .9rem; flex-wrap: wrap; }
+.btn-primary {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: .85rem; letter-spacing: 1px; text-transform: uppercase;
+  padding: .5rem 1.1rem; border-radius: 8px; border: none;
+  background: #2563eb; color: #fff; cursor: pointer; transition: background .2s;
+}
+.btn-primary:hover { background: #1d4ed8; }
+.btn-secondary {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: .85rem; letter-spacing: 1px; text-transform: uppercase;
+  padding: .5rem 1rem; border-radius: 8px;
+  border: 1px solid var(--border); background: transparent;
+  color: var(--muted); cursor: pointer; transition: all .2s;
+}
+.btn-secondary:hover { color: var(--text); border-color: var(--muted); }
+.modal-divider { border: none; border-top: 1px solid var(--border); margin: 1.1rem 0; }
+.modal-section { font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: .72rem; letter-spacing: 2px; color: var(--muted); text-transform: uppercase; margin-bottom: .5rem; }
+.step { font-size: .8rem; color: var(--muted); line-height: 1.8; }
+.step code { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: .1rem .4rem; color: var(--text); font-size: .75rem; }
+
 /* ─── RESPONSIVE ──────────────────────────────────────── */
 @media (max-width: 480px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
@@ -381,6 +457,15 @@ body {
   </div>
 </div>
 
+<!-- ── SYNC BAR ── -->
+<div id="sync-bar">
+  <div class="sync-dot" id="sync-dot"></div>
+  <div class="sync-label" id="sync-label">Sem sincronização — progresso salvo só neste dispositivo</div>
+  <button class="btn-sync-setup" id="btn-sync-open">☁ Sincronizar</button>
+  <button class="btn-sync-setup" id="btn-export">📤 Exportar</button>
+  <button class="btn-sync-setup" id="btn-import">📥 Importar</button>
+</div>
+
 <div id="controls">
   <input class="search-box" type="search" id="search" placeholder="🔍  Buscar seleção...">
 
@@ -408,6 +493,67 @@ body {
 <div id="teams-container"></div>
 
 <div id="toast"></div>
+
+<!-- ── MODAL: EXPORTAR ── -->
+<div class="modal-overlay" id="modal-export">
+  <div class="modal">
+    <div class="modal-title">📤 Exportar Progresso</div>
+    <div class="modal-sub">Copie o código abaixo e cole no outro dispositivo usando o botão "Importar".</div>
+    <div class="modal-section">Código do seu álbum</div>
+    <textarea class="modal-code" id="export-code" readonly></textarea>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btn-copy-code">Copiar código</button>
+      <button class="btn-secondary" onclick="closeModal('modal-export')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: IMPORTAR ── -->
+<div class="modal-overlay" id="modal-import">
+  <div class="modal">
+    <div class="modal-title">📥 Importar Progresso</div>
+    <div class="modal-sub">Cole aqui o código gerado pelo botão "Exportar" em outro dispositivo. O progresso atual será substituído.</div>
+    <div class="modal-section">Cole o código aqui</div>
+    <textarea class="modal-code" id="import-code" placeholder="Cole o código aqui..."></textarea>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btn-do-import">Importar</button>
+      <button class="btn-secondary" onclick="closeModal('modal-import')">Cancelar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: FIREBASE SYNC ── -->
+<div class="modal-overlay" id="modal-sync">
+  <div class="modal">
+    <div class="modal-title">☁ Sincronização Automática</div>
+    <div class="modal-sub">
+      Use o <strong>Firebase</strong> (gratuito) para sincronizar automaticamente em todos os dispositivos em tempo real.
+    </div>
+
+    <div class="modal-section">Passo a passo — só precisa fazer uma vez</div>
+    <div class="step">
+      1. Acesse <a href="https://console.firebase.google.com" target="_blank">console.firebase.google.com</a><br>
+      2. Clique em <strong>Criar projeto</strong> → dê um nome → desative o Analytics → Criar<br>
+      3. No menu lateral: <strong>Compilação → Realtime Database → Criar banco de dados</strong><br>
+      4. Escolha uma região e selecione <strong>"Iniciar no modo de teste"</strong> → Ativar<br>
+      5. Copie a URL do banco (ex: <code>https://meu-projeto-default-rtdb.firebaseio.com</code>)<br>
+      6. Cole abaixo e clique em Conectar
+    </div>
+
+    <hr class="modal-divider">
+    <div class="modal-section">URL do Firebase Database</div>
+    <input class="modal-input" id="fb-url-input" type="url" placeholder="https://seu-projeto-default-rtdb.firebaseio.com">
+
+    <div class="modal-section" style="margin-top:.8rem">ID do Álbum (compartilhe com seus dispositivos)</div>
+    <input class="modal-input" id="fb-album-input" type="text" placeholder="Gerado automaticamente ou cole um existente">
+
+    <div class="modal-actions">
+      <button class="btn-primary" id="btn-fb-connect">Conectar e Sincronizar</button>
+      <button class="btn-secondary" id="btn-fb-disconnect" style="display:none">Desconectar</button>
+      <button class="btn-secondary" onclick="closeModal('modal-sync')">Fechar</button>
+    </div>
+  </div>
+</div>
 
 <script>
 // ─── DATA ────────────────────────────────────────────────────────
@@ -712,10 +858,175 @@ function showToast(msg) {
   toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
 }
 
+// ─── MODAL HELPERS ────────────────────────────────────────────────
+function openModal(id)  { document.getElementById(id).classList.add('open'); }
+function closeModal(id) { document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if (e.target === m) m.classList.remove('open'); });
+});
+
+// ─── EXPORT / IMPORT ──────────────────────────────────────────────
+function buildExportCode() {
+  const compact = {};
+  Object.entries(state).forEach(([k, v]) => { if (v > 0) compact[k] = v; });
+  return btoa(JSON.stringify(compact));
+}
+
+document.getElementById('btn-export').addEventListener('click', () => {
+  document.getElementById('export-code').value = buildExportCode();
+  openModal('modal-export');
+});
+
+document.getElementById('btn-copy-code').addEventListener('click', () => {
+  const ta = document.getElementById('export-code');
+  ta.select(); ta.setSelectionRange(0, 99999);
+  navigator.clipboard.writeText(ta.value)
+    .then(() => showToast('Código copiado! ✓'))
+    .catch(() => { document.execCommand('copy'); showToast('Código copiado! ✓'); });
+});
+
+document.getElementById('btn-import').addEventListener('click', () => {
+  document.getElementById('import-code').value = '';
+  openModal('modal-import');
+});
+
+document.getElementById('btn-do-import').addEventListener('click', () => {
+  const raw = document.getElementById('import-code').value.trim();
+  if (!raw) { showToast('Cole um código primeiro'); return; }
+  try {
+    const compact = JSON.parse(atob(raw));
+    Object.keys(state).forEach(k => state[k] = 0);
+    Object.entries(compact).forEach(([k, v]) => { if (k in state) state[k] = Number(v) || 0; });
+    saveState();
+    renderTeams();
+    updateHeader();
+    closeModal('modal-import');
+    showToast('Progresso importado com sucesso! ✓');
+  } catch {
+    showToast('Código inválido — tente novamente');
+  }
+});
+
+// ─── FIREBASE SYNC ────────────────────────────────────────────────
+const FB_KEY = 'copa2026_firebase';
+let fbUrl = '', fbAlbumId = '', fbSyncTimer = null, fbPollTimer = null;
+
+function fbLoad() {
+  const saved = JSON.parse(localStorage.getItem(FB_KEY) || '{}');
+  fbUrl     = saved.url     || '';
+  fbAlbumId = saved.albumId || '';
+}
+
+function fbSaveConfig() {
+  localStorage.setItem(FB_KEY, JSON.stringify({ url: fbUrl, albumId: fbAlbumId }));
+}
+
+function fbEndpoint() {
+  return `${fbUrl.replace(/\/$/, '')}/copa2026/${fbAlbumId}/state.json`;
+}
+
+function setSyncStatus(cls, msg) {
+  document.getElementById('sync-dot').className   = 'sync-dot ' + cls;
+  document.getElementById('sync-label').innerHTML = msg;
+}
+
+function fbPush() {
+  if (!fbUrl || !fbAlbumId) return;
+  const compact = {};
+  Object.entries(state).forEach(([k, v]) => { if (v > 0) compact[k] = v; });
+  setSyncStatus('saving', 'Salvando na nuvem…');
+  fetch(fbEndpoint(), { method: 'PUT', body: JSON.stringify(compact) })
+    .then(r => r.json())
+    .then(() => setSyncStatus('ok', `Sincronizado ✓ &nbsp;—&nbsp; ID: <span>${fbAlbumId}</span>`))
+    .catch(() => setSyncStatus('err', 'Erro ao sincronizar ✕'));
+}
+
+function fbPull() {
+  if (!fbUrl || !fbAlbumId) return;
+  fetch(fbEndpoint())
+    .then(r => r.json())
+    .then(data => {
+      if (!data || typeof data !== 'object') { fbPush(); return; }
+      Object.keys(state).forEach(k => state[k] = 0);
+      Object.entries(data).forEach(([k, v]) => { if (k in state) state[k] = Number(v) || 0; });
+      saveStateLocal();
+      renderTeams();
+      updateHeader();
+      setSyncStatus('ok', `Sincronizado ✓ &nbsp;—&nbsp; ID: <span>${fbAlbumId}</span>`);
+    })
+    .catch(() => setSyncStatus('err', 'Erro ao carregar da nuvem ✕'));
+}
+
+function fbStartPolling() {
+  clearInterval(fbPollTimer);
+  fbPollTimer = setInterval(fbPull, 30000);
+}
+
+function fbConnect(url, albumId) {
+  fbUrl     = url.trim().replace(/\/$/, '');
+  fbAlbumId = albumId.trim() || Math.random().toString(36).slice(2, 10).toUpperCase();
+  fbSaveConfig();
+  setSyncStatus('saving', 'Conectando…');
+  fbPull();
+  fbStartPolling();
+  document.getElementById('btn-fb-disconnect').style.display = 'inline-block';
+}
+
+function fbDisconnect() {
+  clearInterval(fbPollTimer);
+  fbUrl = ''; fbAlbumId = '';
+  localStorage.removeItem(FB_KEY);
+  setSyncStatus('', 'Sem sincronização — progresso salvo só neste dispositivo');
+  document.getElementById('btn-fb-disconnect').style.display = 'none';
+}
+
+// saveState local (sem Firebase) para uso interno
+function saveStateLocal() { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+
+// Sobrescrever saveState para também enviar ao Firebase (debounced 1.5s)
+saveState = function() {
+  saveStateLocal();
+  clearTimeout(fbSyncTimer);
+  if (fbUrl && fbAlbumId) { fbSyncTimer = setTimeout(fbPush, 1500); }
+};
+
+document.getElementById('btn-sync-open').addEventListener('click', () => {
+  document.getElementById('fb-url-input').value   = fbUrl;
+  document.getElementById('fb-album-input').value = fbAlbumId || genId();
+  openModal('modal-sync');
+});
+
+document.getElementById('btn-fb-connect').addEventListener('click', () => {
+  const url = document.getElementById('fb-url-input').value.trim();
+  if (!url) { showToast('Cole a URL do Firebase primeiro'); return; }
+  const id  = document.getElementById('fb-album-input').value.trim() || genId();
+  fbConnect(url, id);
+  closeModal('modal-sync');
+  showToast('Conectando ao Firebase… ☁');
+});
+
+document.getElementById('btn-fb-disconnect').addEventListener('click', () => {
+  if (!confirm('Desconectar? O progresso local permanece.')) return;
+  fbDisconnect();
+  closeModal('modal-sync');
+  showToast('Sincronização desativada');
+});
+
+function genId() { return Math.random().toString(36).slice(2, 10).toUpperCase(); }
+
 // ─── INIT ─────────────────────────────────────────────────────────
 loadState();
+fbLoad();
 renderTeams();
 updateHeader();
+
+if (fbUrl && fbAlbumId) {
+  document.getElementById('btn-fb-disconnect').style.display = 'inline-block';
+  fbPull();
+  fbStartPolling();
+} else {
+  setSyncStatus('', 'Sem sincronização — progresso salvo só neste dispositivo');
+}
 </script>
 </body>
 </html>
