@@ -1,0 +1,721 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Album Copa 2026 — Controle de Figurinhas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;1,700&family=Barlow:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg:        #060b18;
+  --surface:   #0d1628;
+  --card:      #111d35;
+  --border:    #1e3060;
+  --red:       #e8001a;
+  --gold:      #ffd700;
+  --green-ok:  #22c55e;
+  --orange-dup:#f97316;
+  --gray-miss: #2a3a55;
+  --text:      #e8edf5;
+  --muted:     #7a90b8;
+  --radius:    10px;
+}
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: 'Barlow', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+}
+
+/* ─── HEADER ─────────────────────────────────────────── */
+#header {
+  position: sticky; top: 0; z-index: 100;
+  background: linear-gradient(135deg, #060b18 0%, #0a1530 50%, #060b18 100%);
+  border-bottom: 2px solid var(--border);
+  padding: 0 1rem;
+}
+
+.header-top {
+  display: flex; align-items: center; gap: 1rem;
+  padding: .75rem 0;
+}
+
+.logo-area {
+  display: flex; align-items: center; gap: .6rem; flex: 1;
+}
+
+.logo-globe {
+  width: 52px; height: 52px;
+  background: conic-gradient(from 0deg, #e8001a 0deg 72deg, #ffd700 72deg 144deg, #22c55e 144deg 216deg, #3b82f6 216deg 288deg, #a855f7 288deg 360deg);
+  border-radius: 50%;
+  box-shadow: 0 0 20px rgba(232,0,26,.4), 0 0 40px rgba(255,215,0,.2);
+  animation: spin 20s linear infinite;
+  flex-shrink: 0;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.logo-text {
+  line-height: 1;
+}
+.logo-text .year {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 2rem;
+  background: linear-gradient(135deg, #ffd700, #ff8c00);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+  letter-spacing: 2px;
+}
+.logo-text .subtitle {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .7rem; letter-spacing: 3px; color: var(--muted);
+  text-transform: uppercase;
+}
+
+.hosts {
+  display: flex; gap: .3rem; font-size: 1.4rem;
+}
+
+/* ─── STATS ───────────────────────────────────────────── */
+.stats-row {
+  display: grid; grid-template-columns: repeat(4, 1fr); gap: .5rem;
+  padding: .5rem 0 .75rem;
+}
+
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: .5rem .6rem; text-align: center;
+  position: relative; overflow: hidden;
+}
+.stat-card::before {
+  content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px;
+}
+.stat-card.total::before  { background: #3b82f6; }
+.stat-card.have::before   { background: var(--green-ok); }
+.stat-card.miss::before   { background: var(--muted); }
+.stat-card.dup::before    { background: var(--orange-dup); }
+
+.stat-num {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.6rem; line-height: 1;
+}
+.stat-card.total .stat-num  { color: #60a5fa; }
+.stat-card.have  .stat-num  { color: var(--green-ok); }
+.stat-card.miss  .stat-num  { color: var(--muted); }
+.stat-card.dup   .stat-num  { color: var(--orange-dup); }
+
+.stat-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .65rem; letter-spacing: 1.5px; color: var(--muted);
+  text-transform: uppercase;
+}
+
+/* ─── PROGRESS BAR ────────────────────────────────────── */
+.progress-wrap {
+  padding: 0 0 .75rem;
+}
+.progress-track {
+  height: 8px; background: var(--border); border-radius: 99px; overflow: hidden;
+}
+.progress-fill {
+  height: 100%; border-radius: 99px;
+  background: linear-gradient(90deg, #22c55e, #3b82f6, #ffd700);
+  transition: width .6s ease;
+}
+.progress-label {
+  font-family: 'Barlow Condensed', sans-serif;
+  font-size: .7rem; color: var(--muted); text-align: right; margin-top: 3px;
+}
+
+/* ─── CONTROLS ────────────────────────────────────────── */
+#controls {
+  padding: 1rem;
+  display: flex; flex-wrap: wrap; gap: .6rem; align-items: center;
+}
+
+.search-box {
+  flex: 1; min-width: 160px;
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 8px; padding: .5rem .8rem;
+  color: var(--text); font-family: 'Barlow', sans-serif; font-size: .9rem;
+  outline: none;
+  transition: border-color .2s;
+}
+.search-box:focus { border-color: #3b82f6; }
+.search-box::placeholder { color: var(--muted); }
+
+.filter-group { display: flex; gap: .4rem; flex-wrap: wrap; }
+
+.btn {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: .8rem; letter-spacing: 1px; text-transform: uppercase;
+  padding: .45rem .9rem; border-radius: 7px; border: 1px solid transparent;
+  cursor: pointer; transition: all .2s;
+}
+
+.btn-filter {
+  background: var(--card); border-color: var(--border); color: var(--muted);
+}
+.btn-filter:hover, .btn-filter.active {
+  border-color: #3b82f6; color: #60a5fa; background: rgba(59,130,246,.1);
+}
+.btn-filter[data-f="have"].active   { border-color: var(--green-ok);  color: var(--green-ok);  background: rgba(34,197,94,.1); }
+.btn-filter[data-f="miss"].active   { border-color: var(--muted);      color: var(--text);       background: rgba(122,144,184,.1); }
+.btn-filter[data-f="dup"].active    { border-color: var(--orange-dup); color: var(--orange-dup);background: rgba(249,115,22,.1); }
+
+.btn-action {
+  background: transparent; border-color: var(--border); color: var(--muted);
+  font-size: .75rem;
+}
+.btn-action:hover { color: var(--text); border-color: var(--muted); }
+
+.btn-reset {
+  background: transparent; border-color: #6b2020; color: #f87171; font-size: .75rem;
+}
+.btn-reset:hover { background: rgba(239,68,68,.1); }
+
+/* ─── TEAMS ───────────────────────────────────────────── */
+#teams-container {
+  padding: 0 1rem 4rem;
+  display: flex; flex-direction: column; gap: .6rem;
+}
+
+.team-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: var(--radius); overflow: hidden;
+  animation: fadeUp .4s ease both;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.team-header {
+  display: flex; align-items: center; gap: .8rem;
+  padding: .75rem 1rem; cursor: pointer;
+  transition: background .2s;
+  user-select: none;
+}
+.team-header:hover { background: rgba(255,255,255,.03); }
+
+.team-flag { font-size: 1.6rem; flex-shrink: 0; line-height: 1; display:flex; align-items:center; }
+.team-flag img { width: 40px; height: auto; border-radius: 4px; box-shadow: 0 1px 6px rgba(0,0,0,.5); object-fit: cover; }
+.team-flag .flag-fallback { display:none; }
+.team-flag img.broken + .flag-fallback { display:inline; }
+
+.team-info { flex: 1; min-width: 0; }
+.team-name {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: 1rem; letter-spacing: .5px; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis;
+}
+.team-sub {
+  font-size: .7rem; color: var(--muted); margin-top: 1px;
+  display: flex; align-items: center; gap: .4rem;
+}
+.team-mini-bar {
+  flex: 1; max-width: 80px; height: 3px;
+  background: var(--border); border-radius: 99px; overflow: hidden;
+}
+.team-mini-fill {
+  height: 100%; border-radius: 99px;
+  background: var(--green-ok); transition: width .4s;
+}
+
+.team-badge {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: .75rem; padding: .2rem .5rem;
+  border-radius: 5px; flex-shrink: 0;
+}
+.badge-good  { background: rgba(34,197,94,.15);  color: var(--green-ok); }
+.badge-part  { background: rgba(59,130,246,.12);  color: #60a5fa; }
+.badge-empty { background: var(--gray-miss);      color: var(--muted); }
+
+.team-chevron {
+  color: var(--muted); font-size: .8rem; flex-shrink: 0;
+  transition: transform .3s; display: flex; align-items: center;
+}
+.team-card.open .team-chevron { transform: rotate(180deg); }
+
+/* ─── STICKERS GRID ───────────────────────────────────── */
+.stickers-wrap {
+  max-height: 0; overflow: hidden;
+  transition: max-height .35s ease;
+  border-top: 0px solid var(--border);
+}
+.team-card.open .stickers-wrap {
+  max-height: 800px;
+  border-top: 1px solid var(--border);
+}
+
+.stickers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(52px, 1fr));
+  gap: .5rem; padding: .75rem;
+}
+
+.sticker {
+  aspect-ratio: 3/4;
+  border-radius: 7px; border: 2px solid transparent;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 2px;
+  cursor: pointer; transition: all .18s; position: relative;
+  user-select: none;
+}
+
+.sticker[data-count="0"] {
+  background: var(--gray-miss); border-color: #1e3060; color: var(--muted);
+}
+.sticker[data-count="1"] {
+  background: rgba(34,197,94,.18); border-color: var(--green-ok); color: var(--green-ok);
+  box-shadow: 0 0 10px rgba(34,197,94,.25);
+}
+.sticker[data-count]:not([data-count="0"]):not([data-count="1"]) {
+  background: rgba(249,115,22,.18); border-color: var(--orange-dup); color: var(--orange-dup);
+  box-shadow: 0 0 10px rgba(249,115,22,.25);
+}
+
+.sticker:hover { transform: scale(1.08); z-index: 2; }
+.sticker:active { transform: scale(.94); }
+
+.sticker-num {
+  font-family: 'Bebas Neue', sans-serif; font-size: 1.1rem; line-height: 1;
+}
+.sticker-val {
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: .78rem; line-height: 1;
+}
+
+.sticker-minus {
+  position: absolute; top: 2px; right: 2px;
+  width: 16px; height: 16px; border-radius: 50%;
+  background: rgba(0,0,0,.4); border: none;
+  color: rgba(255,255,255,.75); font-size: 12px; font-weight: 700;
+  cursor: pointer; display: none;
+  align-items: center; justify-content: center;
+  line-height: 1; padding: 0; transition: background .15s;
+  z-index: 3;
+}
+.sticker[data-count]:not([data-count="0"]) .sticker-minus { display: flex; }
+.sticker-minus:hover { background: rgba(239,68,68,.75); color: #fff; }
+
+/* ─── LEGEND ──────────────────────────────────────────── */
+.legend {
+  display: flex; gap: 1rem; padding: .5rem 1rem;
+  font-family: 'Barlow Condensed', sans-serif; font-size: .72rem;
+  color: var(--muted); flex-wrap: wrap;
+}
+.legend-item { display: flex; align-items: center; gap: .3rem; }
+.dot { width: 10px; height: 10px; border-radius: 3px; }
+.dot-miss { background: var(--gray-miss); }
+.dot-have { background: var(--green-ok); }
+.dot-dup  { background: var(--orange-dup); }
+
+/* ─── EMPTY STATE ─────────────────────────────────────── */
+.empty-state {
+  text-align: center; padding: 3rem 1rem; color: var(--muted);
+  font-family: 'Barlow Condensed', sans-serif; font-size: 1.1rem;
+}
+
+/* ─── TOAST ───────────────────────────────────────────── */
+#toast {
+  position: fixed; bottom: 1.5rem; left: 50%; transform: translateX(-50%) translateY(80px);
+  background: var(--card); border: 1px solid var(--border); border-radius: 8px;
+  padding: .6rem 1.2rem;
+  font-family: 'Barlow Condensed', sans-serif; font-size: .9rem; color: var(--text);
+  transition: transform .3s ease; z-index: 999; pointer-events: none;
+  white-space: nowrap;
+}
+#toast.show { transform: translateX(-50%) translateY(0); }
+
+/* ─── RESPONSIVE ──────────────────────────────────────── */
+@media (max-width: 480px) {
+  .stats-row { grid-template-columns: repeat(2, 1fr); }
+  .logo-text .year { font-size: 1.6rem; }
+  .stickers-grid { grid-template-columns: repeat(auto-fill, minmax(44px, 1fr)); }
+}
+</style>
+</head>
+<body>
+
+<div id="header">
+  <div class="header-top">
+    <div class="logo-area">
+      <div class="logo-globe"></div>
+      <div class="logo-text">
+        <div class="year">COPA 2026</div>
+        <div class="subtitle">Controle de Figurinhas</div>
+      </div>
+    </div>
+    <div class="hosts" title="USA · Canada · México">🇺🇸🇨🇦🇲🇽</div>
+  </div>
+
+  <div class="stats-row">
+    <div class="stat-card total">
+      <div class="stat-num" id="s-total">980</div>
+      <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card have">
+      <div class="stat-num" id="s-have">0</div>
+      <div class="stat-label">Tenho</div>
+    </div>
+    <div class="stat-card miss">
+      <div class="stat-num" id="s-miss">0</div>
+      <div class="stat-label">Faltam</div>
+    </div>
+    <div class="stat-card dup">
+      <div class="stat-num" id="s-dup">0</div>
+      <div class="stat-label">Repetidas</div>
+    </div>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="prog-fill" style="width:0%"></div>
+    </div>
+    <div class="progress-label" id="prog-label">0% completo</div>
+  </div>
+</div>
+
+<div id="controls">
+  <input class="search-box" type="search" id="search" placeholder="🔍  Buscar seleção...">
+
+  <div class="filter-group">
+    <button class="btn btn-filter active" data-f="all">Todas</button>
+    <button class="btn btn-filter" data-f="have">✅ Tenho</button>
+    <button class="btn btn-filter" data-f="miss">⬜ Faltam</button>
+    <button class="btn btn-filter" data-f="dup">🔁 Repetidas</button>
+  </div>
+
+  <div class="filter-group">
+    <button class="btn btn-action" id="btn-expand">Expandir Tudo</button>
+    <button class="btn btn-action" id="btn-collapse">Recolher Tudo</button>
+    <button class="btn btn-reset" id="btn-reset">↺ Resetar</button>
+  </div>
+</div>
+
+<div class="legend">
+  <div class="legend-item"><div class="dot dot-miss"></div> Falta</div>
+  <div class="legend-item"><div class="dot dot-have"></div> Tenho</div>
+  <div class="legend-item"><div class="dot dot-dup"></div> Repetida (×2 ou mais)</div>
+  <div style="margin-left:auto; color: var(--muted); font-size:.68rem;">Clique para adicionar · − para remover</div>
+</div>
+
+<div id="teams-container"></div>
+
+<div id="toast"></div>
+
+<script>
+// ─── DATA ────────────────────────────────────────────────────────
+// initial[i] = 1 means collected per spreadsheet (state 1 = tenho)
+// state: 0=falta, 1=tenho, 2=repetida
+const TEAMS = [
+  { id:"FWC", name:"FWC",              iso:null,     flag:"🌎", initial:[0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0] },
+  { id:"MEX", name:"MÉXICO",           iso:"mx",     flag:"🇲🇽", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0] },
+  { id:"RSA", name:"ÁFRICA DO SUL",    iso:"za",     flag:"🇿🇦", initial:[0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,0,1,1,0,0] },
+  { id:"KOR", name:"COREIA DO NORTE",  iso:"kp",     flag:"🇰🇵", initial:[0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1] },
+  { id:"CZE", name:"REP. TCHECA",      iso:"cz",     flag:"🇨🇿", initial:[0,0,0,0,1,0,0,0,1,1,0,0,0,1,0,0,0,1,0,0] },
+  { id:"CAN", name:"CANADÁ",           iso:"ca",     flag:"🇨🇦", initial:[1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,0,0,0] },
+  { id:"BIH", name:"BÓSNIA",           iso:"ba",     flag:"🇧🇦", initial:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"QAT", name:"QATAR",            iso:"qa",     flag:"🇶🇦", initial:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"SUI", name:"SUÍÇA",            iso:"ch",     flag:"🇨🇭", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"BRA", name:"BRASIL",           iso:"br",     flag:"🇧🇷", initial:[0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,1,0,0,0] },
+  { id:"MAR", name:"MARROCOS",         iso:"ma",     flag:"🇲🇦", initial:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0] },
+  { id:"HAI", name:"HAITI",            iso:"ht",     flag:"🇭🇹", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0] },
+  { id:"SCO", name:"ESCÓCIA",          iso:"gb-sct", flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", initial:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"USA", name:"EUA",              iso:"us",     flag:"🇺🇸", initial:[0,0,0,0,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1] },
+  { id:"PAR", name:"PARAGUAI",         iso:"py",     flag:"🇵🇾", initial:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0] },
+  { id:"AUS", name:"AUSTRÁLIA",        iso:"au",     flag:"🇦🇺", initial:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"TUR", name:"TURQUIA",          iso:"tr",     flag:"🇹🇷", initial:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0] },
+  { id:"GER", name:"ALEMANHA",         iso:"de",     flag:"🇩🇪", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"CUW", name:"CURAÇAO",          iso:"cw",     flag:"🇨🇼", initial:[0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"CIV", name:"COSTA DO MARFIM",  iso:"ci",     flag:"🇨🇮", initial:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"ECU", name:"EQUADOR",          iso:"ec",     flag:"🇪🇨", initial:[0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,0,1,0] },
+  { id:"NED", name:"HOLANDA",          iso:"nl",     flag:"🇳🇱", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0] },
+  { id:"JPN", name:"JAPÃO",            iso:"jp",     flag:"🇯🇵", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"SWE", name:"SUÉCIA",           iso:"se",     flag:"🇸🇪", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0] },
+  { id:"TUN", name:"TUNÍSIA",          iso:"tn",     flag:"🇹🇳", initial:[0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0] },
+  { id:"BEL", name:"BÉLGICA",          iso:"be",     flag:"🇧🇪", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"EGY", name:"EGITO",            iso:"eg",     flag:"🇪🇬", initial:[1,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0] },
+  { id:"IRN", name:"IRÃ",              iso:"ir",     flag:"🇮🇷", initial:[0,0,0,0,0,0,1,0,0,0,1,0,0,1,0,0,0,0,0,0] },
+  { id:"NZL", name:"NOVA ZELÂNDIA",    iso:"nz",     flag:"🇳🇿", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,1,1] },
+  { id:"ESP", name:"ESPANHA",          iso:"es",     flag:"🇪🇸", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"CPV", name:"CABO VERDE",       iso:"cv",     flag:"🇨🇻", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"KSA", name:"ARÁBIA SAUDITA",   iso:"sa",     flag:"🇸🇦", initial:[0,0,0,0,1,0,0,0,1,1,0,0,0,0,1,0,0,0,1,0] },
+  { id:"URU", name:"URUGUAI",          iso:"uy",     flag:"🇺🇾", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0] },
+  { id:"FRA", name:"FRANÇA",           iso:"fr",     flag:"🇫🇷", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0] },
+  { id:"SEN", name:"SENEGAL",          iso:"sn",     flag:"🇸🇳", initial:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0] },
+  { id:"IRQ", name:"IRAQUE",           iso:"iq",     flag:"🇮🇶", initial:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"NOR", name:"NORUEGA",          iso:"no",     flag:"🇳🇴", initial:[0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,0] },
+  { id:"ARG", name:"ARGENTINA",        iso:"ar",     flag:"🇦🇷", initial:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0] },
+  { id:"ALG", name:"ARGÉLIA",          iso:"dz",     flag:"🇩🇿", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,0] },
+  { id:"AUT", name:"ÁUSTRIA",          iso:"at",     flag:"🇦🇹", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"JOR", name:"JORDÂNIA",         iso:"jo",     flag:"🇯🇴", initial:[0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"POR", name:"PORTUGAL",         iso:"pt",     flag:"🇵🇹", initial:[0,1,0,0,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0] },
+  { id:"COD", name:"CONGO",            iso:"cd",     flag:"🇨🇩", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"UZB", name:"UZBEQUISTÃO",      iso:"uz",     flag:"🇺🇿", initial:[1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"COL", name:"COLÔMBIA",         iso:"co",     flag:"🇨🇴", initial:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"ING", name:"INGLATERRA",       iso:"gb-eng", flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", initial:[0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0] },
+  { id:"CRO", name:"CROÁCIA",          iso:"hr",     flag:"🇭🇷", initial:[0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0] },
+  { id:"GHA", name:"GANA",             iso:"gh",     flag:"🇬🇭", initial:[1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,1,0,0,0,0] },
+  { id:"PAN", name:"PANAMÁ",           iso:"pa",     flag:"🇵🇦", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,0] },
+];
+
+const TOTAL = TEAMS.length * 20; // 980
+const STORAGE_KEY = 'copa2026_v2';
+
+// ─── STATE ───────────────────────────────────────────────────────
+let state = {};
+
+function loadState() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+    TEAMS.forEach(t => {
+      t.initial.forEach((v, i) => {
+        const key = `${t.id}_${i}`;
+        state[key] = (key in saved) ? saved[key] : (v === 1 ? 1 : 0);
+      });
+    });
+  } catch {
+    TEAMS.forEach(t => t.initial.forEach((v, i) => { state[`${t.id}_${i}`] = v === 1 ? 1 : 0; }));
+  }
+}
+
+function saveState() {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+}
+
+// ─── STATS ───────────────────────────────────────────────────────
+function calcStats() {
+  let have = 0, dup = 0;
+  Object.values(state).forEach(v => {
+    if (v >= 1) { have++; dup += v - 1; }
+  });
+  return { have, dup, miss: TOTAL - have };
+}
+
+function updateHeader() {
+  const { have, dup, miss } = calcStats();
+  document.getElementById('s-total').textContent = TOTAL;
+  document.getElementById('s-have').textContent  = have;
+  document.getElementById('s-miss').textContent  = miss;
+  document.getElementById('s-dup').textContent   = dup;
+  const pct = Math.round((have / TOTAL) * 100);
+  document.getElementById('prog-fill').style.width  = pct + '%';
+  document.getElementById('prog-label').textContent = `${pct}% completo (${have}/${TOTAL})`;
+}
+
+// ─── RENDER ──────────────────────────────────────────────────────
+let currentFilter = 'all';
+let currentSearch = '';
+
+function teamStats(t) {
+  let have = 0, dup = 0;
+  t.initial.forEach((_, i) => {
+    const v = state[`${t.id}_${i}`] || 0;
+    if (v >= 1) { have++; dup += v - 1; }
+  });
+  return { have, dup, miss: 20 - have };
+}
+
+function stickerVal(cnt) {
+  return cnt === 0 ? '' : cnt === 1 ? '✓' : `×${cnt}`;
+}
+
+function updateStickerEl(el, key) {
+  const cnt = state[key] || 0;
+  el.dataset.count = cnt;
+  el.querySelector('.sticker-val').textContent = stickerVal(cnt);
+}
+
+function updateTeamCard(card, t) {
+  const { have, dup, miss } = teamStats(t);
+  const pct = Math.round((have / 20) * 100);
+  card.querySelector('.team-mini-fill').style.width = pct + '%';
+  const sub = card.querySelector('.team-sub span');
+  sub.innerHTML = `${dup > 0 ? `<span style="color:var(--orange-dup)">↺${dup} repetida${dup>1?'s':''}</span> · ` : ''}${miss} faltam`;
+  const badge = card.querySelector('.team-badge');
+  badge.className = `team-badge ${have === 20 ? 'badge-good' : have > 0 ? 'badge-part' : 'badge-empty'}`;
+  badge.textContent = have === 20 ? '✓ Completo' : `${have}/20`;
+}
+
+function renderTeams() {
+  const container = document.getElementById('teams-container');
+  const q = currentSearch.toLowerCase();
+  const f = currentFilter;
+
+  const filtered = TEAMS.filter(t => {
+    if (q && !t.name.toLowerCase().includes(q)) return false;
+    if (f === 'all')  return true;
+    const { have, dup, miss } = teamStats(t);
+    if (f === 'have') return have > 0;
+    if (f === 'miss') return miss > 0;
+    if (f === 'dup')  return dup > 0;
+    return true;
+  });
+
+  if (filtered.length === 0) {
+    container.innerHTML = '<div class="empty-state">Nenhuma seleção encontrada 🔍</div>';
+    return;
+  }
+
+  // preserve open state
+  const openSet = new Set();
+  container.querySelectorAll('.team-card.open').forEach(el => openSet.add(el.dataset.id));
+
+  container.innerHTML = '';
+  filtered.forEach((t, idx) => {
+    const { have, dup, miss } = teamStats(t);
+    const pct = Math.round((have / 20) * 100);
+    const isOpen = openSet.has(t.id);
+
+    const badgeClass = have === 20 ? 'badge-good' : have > 0 ? 'badge-part' : 'badge-empty';
+    const badgeText  = have === 20 ? '✓ Completo' : `${have}/20`;
+
+    const card = document.createElement('div');
+    card.className = `team-card${isOpen ? ' open' : ''}`;
+    card.dataset.id = t.id;
+    card.style.animationDelay = (idx * 0.03) + 's';
+
+    card.innerHTML = `
+      <div class="team-header">
+        <div class="team-flag">
+          ${t.iso
+            ? `<img src="https://flagcdn.com/w40/${t.iso}.png" alt="${t.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='inline'">`
+            : ''}
+          <span class="flag-fallback" style="${t.iso ? 'display:none' : ''}">${t.flag}</span>
+        </div>
+        <div class="team-info">
+          <div class="team-name">${t.name}</div>
+          <div class="team-sub">
+            <div class="team-mini-bar"><div class="team-mini-fill" style="width:${pct}%"></div></div>
+            <span>${dup > 0 ? `<span style="color:var(--orange-dup)">↺${dup}</span> · ` : ''}${miss} faltam</span>
+          </div>
+        </div>
+        <span class="team-badge ${badgeClass}">${badgeText}</span>
+        <span class="team-chevron">▼</span>
+      </div>
+      <div class="stickers-wrap">
+        <div class="stickers-grid" data-team="${t.id}">
+          ${t.initial.map((_, i) => {
+            const cnt = state[`${t.id}_${i}`] || 0;
+            return `<div class="sticker" data-count="${cnt}" data-team="${t.id}" data-idx="${i}">
+              <span class="sticker-num">${i+1}</span>
+              <span class="sticker-val">${stickerVal(cnt)}</span>
+              <button class="sticker-minus" title="Remover uma">−</button>
+            </div>`;
+          }).join('')}
+        </div>
+      </div>`;
+
+    card.querySelector('.team-header').addEventListener('click', () => {
+      card.classList.toggle('open');
+    });
+
+    container.appendChild(card);
+  });
+}
+
+// ─── STICKER CLICK (delegation) ──────────────────────────────────
+document.getElementById('teams-container').addEventListener('click', e => {
+  // ── Botão de remover (−) ──
+  const minusBtn = e.target.closest('.sticker-minus');
+  if (minusBtn) {
+    e.stopPropagation();
+    const sticker = minusBtn.closest('.sticker');
+    const { team, idx } = sticker.dataset;
+    const key = `${team}_${idx}`;
+    const cnt = state[key] || 0;
+    if (cnt === 0) return;
+    const t = TEAMS.find(t => t.id === team);
+    const label = `${t.name} #${+idx + 1}`;
+    const msg = cnt === 1
+      ? `Remover a figurinha ${label}? Ela voltará para "Falta".`
+      : `Remover uma repetida de ${label}? Ficará com ${cnt - 1}.`;
+    if (!confirm(msg)) return;
+    state[key] = cnt - 1;
+    updateStickerEl(sticker, key);
+    updateTeamCard(sticker.closest('.team-card'), t);
+    saveState();
+    updateHeader();
+    showToast(`Removida • ${label}`);
+    return;
+  }
+
+  // ── Clique principal: adicionar ──
+  const sticker = e.target.closest('.sticker');
+  if (!sticker) return;
+  const { team, idx } = sticker.dataset;
+  const key = `${team}_${idx}`;
+  const cnt = state[key] || 0;
+  const t = TEAMS.find(t => t.id === team);
+  const label = `${t.name} #${+idx + 1}`;
+
+  if (cnt >= 1) {
+    const plural = cnt > 1 ? `${cnt} cópias` : '1 cópia';
+    if (!confirm(`Você já tem ${plural} da figurinha ${label}.\n\nAdicionar mais uma como repetida?`)) return;
+  }
+
+  state[key] = cnt + 1;
+  updateStickerEl(sticker, key);
+  updateTeamCard(sticker.closest('.team-card'), t);
+  saveState();
+  updateHeader();
+  const toast = state[key] === 1
+    ? `Adicionada ✓ • ${label}`
+    : `Repetida ×${state[key]} • ${label}`;
+  showToast(toast);
+});
+
+// ─── CONTROLS ────────────────────────────────────────────────────
+document.getElementById('search').addEventListener('input', e => {
+  currentSearch = e.target.value;
+  renderTeams();
+});
+
+document.querySelectorAll('.btn-filter').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.btn-filter').forEach(b => b.classList.remove('active'));
+    btn.classList.add('active');
+    currentFilter = btn.dataset.f;
+    renderTeams();
+  });
+});
+
+document.getElementById('btn-expand').addEventListener('click', () => {
+  document.querySelectorAll('.team-card').forEach(c => c.classList.add('open'));
+});
+document.getElementById('btn-collapse').addEventListener('click', () => {
+  document.querySelectorAll('.team-card').forEach(c => c.classList.remove('open'));
+});
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  if (!confirm('Resetar TUDO? Isso vai apagar todas as marcações e voltar para os dados da planilha.')) return;
+  localStorage.removeItem(STORAGE_KEY);
+  loadState();
+  renderTeams();
+  updateHeader();
+  showToast('Progresso resetado ↺');
+});
+
+// ─── TOAST ───────────────────────────────────────────────────────
+let toastTimer;
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+// ─── INIT ─────────────────────────────────────────────────────────
+loadState();
+renderTeams();
+updateHeader();
+</script>
+</body>
+</html>
