@@ -408,6 +408,27 @@ body {
 .step { font-size: .8rem; color: var(--muted); line-height: 1.8; }
 .step code { background: var(--bg); border: 1px solid var(--border); border-radius: 4px; padding: .1rem .4rem; color: var(--text); font-size: .75rem; }
 
+/* ─── SIGLA TAG ───────────────────────────────────────── */
+.sigla-tag {
+  display: inline-block;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700;
+  font-size: .6rem; letter-spacing: 1.5px;
+  color: var(--muted); background: var(--border);
+  padding: 1px 5px; border-radius: 4px;
+  margin-left: 5px; vertical-align: middle;
+  line-height: 1.6;
+}
+
+/* ─── PRINT (lista de repetidas) ──────────────────────── */
+#print-area { display: none; }
+@media print {
+  body > *:not(#print-area) { display: none !important; }
+  #print-area {
+    display: block; font-family: 'Courier New', monospace;
+    font-size: 11pt; color: #000; white-space: pre;
+  }
+}
+
 /* ─── RESPONSIVE ──────────────────────────────────────── */
 @media (max-width: 480px) {
   .stats-row { grid-template-columns: repeat(2, 1fr); }
@@ -464,6 +485,7 @@ body {
   <button class="btn-sync-setup" id="btn-sync-open">☁ Sincronizar</button>
   <button class="btn-sync-setup" id="btn-export">📤 Exportar</button>
   <button class="btn-sync-setup" id="btn-import">📥 Importar</button>
+  <button class="btn-sync-setup" id="btn-dups" style="color:var(--orange-dup);border-color:var(--orange-dup)">📋 Repetidas</button>
 </div>
 
 <div id="controls">
@@ -554,6 +576,23 @@ body {
     </div>
   </div>
 </div>
+
+<!-- ── MODAL: LISTA DE REPETIDAS ── -->
+<div class="modal-overlay" id="modal-dups">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">📋 Figurinhas Repetidas para Troca</div>
+    <div class="modal-sub" id="dups-sub">Carregando…</div>
+    <textarea class="modal-code" id="dups-text" readonly style="min-height:260px;font-size:.78rem;line-height:1.6"></textarea>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btn-dups-txt">⬇ Baixar .txt</button>
+      <button class="btn-primary" id="btn-dups-print" style="background:#7c3aed">🖨 Imprimir / PDF</button>
+      <button class="btn-secondary" onclick="closeModal('modal-dups')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- área usada só na impressão -->
+<div id="print-area"></div>
 
 <script>
 // ─── DATA ────────────────────────────────────────────────────────
@@ -737,7 +776,7 @@ function renderTeams() {
           <span class="flag-fallback" style="${t.iso ? 'display:none' : ''}">${t.flag}</span>
         </div>
         <div class="team-info">
-          <div class="team-name">${t.name}</div>
+          <div class="team-name">${t.name}${t.id !== 'FWC' ? `<span class="sigla-tag">${t.id === 'COCA' ? 'CC' : t.id}</span>` : ''}</div>
           <div class="team-sub">
             <div class="team-mini-bar"><div class="team-mini-fill" style="width:${pct}%"></div></div>
             <span>${dup > 0 ? `<span style="color:var(--orange-dup)">↺${dup}</span> · ` : ''}${miss} faltam</span>
@@ -1017,6 +1056,84 @@ document.getElementById('btn-fb-disconnect').addEventListener('click', () => {
 });
 
 function genId() { return Math.random().toString(36).slice(2, 10).toUpperCase(); }
+
+// ─── LISTA DE REPETIDAS ───────────────────────────────────────────
+function getSigla(t) {
+  if (t.id === 'FWC')  return 'FWC';
+  if (t.id === 'COCA') return 'CC';
+  return t.id;
+}
+
+function buildDupList() {
+  const date = new Date().toLocaleDateString('pt-BR');
+  const lines = [
+    'ÁLBUM COPA 2026 — FIGURINHAS REPETIDAS PARA TROCA',
+    `Gerado em: ${date}`,
+    '='.repeat(48),
+    ''
+  ];
+  let totalTroca = 0;
+
+  TEAMS.forEach(t => {
+    const sigla = getSigla(t);
+    const dups = [];
+    for (let i = 0; i < t.count; i++) {
+      const v = state[`${t.id}_${i}`] || 0;
+      if (v >= 2) {
+        const num = t.zeroStart ? String(i).padStart(2,'0') : String(i + 1).padStart(2,' ');
+        const extra = v - 1;
+        dups.push({ num, extra });
+        totalTroca += extra;
+      }
+    }
+    if (dups.length > 0) {
+      const trocaTotal = dups.reduce((s,d) => s + d.extra, 0);
+      lines.push(`[${sigla}] ${t.name} — ${trocaTotal} para troca`);
+      dups.forEach(d => {
+        const rep = d.extra > 1 ? ` ×${d.extra}` : '';
+        lines.push(`  ${sigla} ${d.num}${rep}`);
+      });
+      lines.push('');
+    }
+  });
+
+  if (totalTroca === 0) {
+    lines.push('Nenhuma figurinha repetida ainda!');
+  } else {
+    lines.push('='.repeat(48));
+    lines.push(`TOTAL: ${totalTroca} figurinha${totalTroca > 1 ? 's' : ''} disponíveis para troca`);
+  }
+
+  return { text: lines.join('\n'), totalTroca };
+}
+
+document.getElementById('btn-dups').addEventListener('click', () => {
+  const { text, totalTroca } = buildDupList();
+  document.getElementById('dups-text').value = text;
+  document.getElementById('dups-sub').textContent =
+    totalTroca === 0
+      ? 'Você ainda não tem figurinhas repetidas.'
+      : `Você tem ${totalTroca} figurinha${totalTroca > 1 ? 's' : ''} disponível${totalTroca > 1 ? 'eis' : ''} para troca.`;
+  openModal('modal-dups');
+});
+
+document.getElementById('btn-dups-txt').addEventListener('click', () => {
+  const text = document.getElementById('dups-text').value;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `repetidas_copa2026_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Arquivo .txt baixado! ✓');
+});
+
+document.getElementById('btn-dups-print').addEventListener('click', () => {
+  const text = document.getElementById('dups-text').value;
+  document.getElementById('print-area').textContent = text;
+  window.print();
+});
 
 // ─── INIT ─────────────────────────────────────────────────────────
 loadState();
