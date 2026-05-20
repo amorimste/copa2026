@@ -560,58 +560,59 @@ body {
 // initial[i] = 1 means collected per spreadsheet (state 1 = tenho)
 // state: 0=falta, 1=tenho, 2=repetida
 const TEAMS = [
-  { id:"FWC", name:"FWC",              iso:null,     flag:"🌎", initial:[0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0] },
-  { id:"MEX", name:"MÉXICO",           iso:"mx",     flag:"🇲🇽", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0] },
-  { id:"RSA", name:"ÁFRICA DO SUL",    iso:"za",     flag:"🇿🇦", initial:[0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,0,1,1,0,0] },
-  { id:"KOR", name:"COREIA DO NORTE",  iso:"kp",     flag:"🇰🇵", initial:[0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1] },
-  { id:"CZE", name:"REP. TCHECA",      iso:"cz",     flag:"🇨🇿", initial:[0,0,0,0,1,0,0,0,1,1,0,0,0,1,0,0,0,1,0,0] },
-  { id:"CAN", name:"CANADÁ",           iso:"ca",     flag:"🇨🇦", initial:[1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,0,0,0] },
-  { id:"BIH", name:"BÓSNIA",           iso:"ba",     flag:"🇧🇦", initial:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"QAT", name:"QATAR",            iso:"qa",     flag:"🇶🇦", initial:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"SUI", name:"SUÍÇA",            iso:"ch",     flag:"🇨🇭", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"BRA", name:"BRASIL",           iso:"br",     flag:"🇧🇷", initial:[0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,1,0,0,0] },
-  { id:"MAR", name:"MARROCOS",         iso:"ma",     flag:"🇲🇦", initial:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0] },
-  { id:"HAI", name:"HAITI",            iso:"ht",     flag:"🇭🇹", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0] },
-  { id:"SCO", name:"ESCÓCIA",          iso:"gb-sct", flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", initial:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"USA", name:"EUA",              iso:"us",     flag:"🇺🇸", initial:[0,0,0,0,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1] },
-  { id:"PAR", name:"PARAGUAI",         iso:"py",     flag:"🇵🇾", initial:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0] },
-  { id:"AUS", name:"AUSTRÁLIA",        iso:"au",     flag:"🇦🇺", initial:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"TUR", name:"TURQUIA",          iso:"tr",     flag:"🇹🇷", initial:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0] },
-  { id:"GER", name:"ALEMANHA",         iso:"de",     flag:"🇩🇪", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"CUW", name:"CURAÇAO",          iso:"cw",     flag:"🇨🇼", initial:[0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"CIV", name:"COSTA DO MARFIM",  iso:"ci",     flag:"🇨🇮", initial:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"ECU", name:"EQUADOR",          iso:"ec",     flag:"🇪🇨", initial:[0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,0,1,0] },
-  { id:"NED", name:"HOLANDA",          iso:"nl",     flag:"🇳🇱", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0] },
-  { id:"JPN", name:"JAPÃO",            iso:"jp",     flag:"🇯🇵", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"SWE", name:"SUÉCIA",           iso:"se",     flag:"🇸🇪", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0] },
-  { id:"TUN", name:"TUNÍSIA",          iso:"tn",     flag:"🇹🇳", initial:[0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0] },
-  { id:"BEL", name:"BÉLGICA",          iso:"be",     flag:"🇧🇪", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"EGY", name:"EGITO",            iso:"eg",     flag:"🇪🇬", initial:[1,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0] },
-  { id:"IRN", name:"IRÃ",              iso:"ir",     flag:"🇮🇷", initial:[0,0,0,0,0,0,1,0,0,0,1,0,0,1,0,0,0,0,0,0] },
-  { id:"NZL", name:"NOVA ZELÂNDIA",    iso:"nz",     flag:"🇳🇿", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,1,1] },
-  { id:"ESP", name:"ESPANHA",          iso:"es",     flag:"🇪🇸", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"CPV", name:"CABO VERDE",       iso:"cv",     flag:"🇨🇻", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"KSA", name:"ARÁBIA SAUDITA",   iso:"sa",     flag:"🇸🇦", initial:[0,0,0,0,1,0,0,0,1,1,0,0,0,0,1,0,0,0,1,0] },
-  { id:"URU", name:"URUGUAI",          iso:"uy",     flag:"🇺🇾", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0] },
-  { id:"FRA", name:"FRANÇA",           iso:"fr",     flag:"🇫🇷", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0] },
-  { id:"SEN", name:"SENEGAL",          iso:"sn",     flag:"🇸🇳", initial:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0] },
-  { id:"IRQ", name:"IRAQUE",           iso:"iq",     flag:"🇮🇶", initial:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"NOR", name:"NORUEGA",          iso:"no",     flag:"🇳🇴", initial:[0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,0] },
-  { id:"ARG", name:"ARGENTINA",        iso:"ar",     flag:"🇦🇷", initial:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0] },
-  { id:"ALG", name:"ARGÉLIA",          iso:"dz",     flag:"🇩🇿", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,0] },
-  { id:"AUT", name:"ÁUSTRIA",          iso:"at",     flag:"🇦🇹", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"JOR", name:"JORDÂNIA",         iso:"jo",     flag:"🇯🇴", initial:[0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"POR", name:"PORTUGAL",         iso:"pt",     flag:"🇵🇹", initial:[0,1,0,0,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0] },
-  { id:"COD", name:"CONGO",            iso:"cd",     flag:"🇨🇩", initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"UZB", name:"UZBEQUISTÃO",      iso:"uz",     flag:"🇺🇿", initial:[1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"COL", name:"COLÔMBIA",         iso:"co",     flag:"🇨🇴", initial:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
-  { id:"ING", name:"INGLATERRA",       iso:"gb-eng", flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", initial:[0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0] },
-  { id:"CRO", name:"CROÁCIA",          iso:"hr",     flag:"🇭🇷", initial:[0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0] },
-  { id:"GHA", name:"GANA",             iso:"gh",     flag:"🇬🇭", initial:[1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,1,0,0,0,0] },
-  { id:"PAN", name:"PANAMÁ",           iso:"pa",     flag:"🇵🇦", initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,0] },
+  { id:"FWC",  name:"FWC",              iso:null,     flag:"🌎", count:20, zeroStart:true, initial:[0,0,0,1,0,0,1,0,0,0,0,0,0,0,0,0,1,0,0,0] },
+  { id:"MEX",  name:"MÉXICO",           iso:"mx",     flag:"🇲🇽", count:20, initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0] },
+  { id:"RSA",  name:"ÁFRICA DO SUL",    iso:"za",     flag:"🇿🇦", count:20, initial:[0,0,0,0,0,0,0,1,1,0,0,1,0,1,0,0,1,1,0,0] },
+  { id:"KOR",  name:"COREIA DO SUL",    iso:"kr",     flag:"🇰🇷", count:20, initial:[0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0,1] },
+  { id:"CZE",  name:"REP. TCHECA",      iso:"cz",     flag:"🇨🇿", count:20, initial:[0,0,0,0,1,0,0,0,1,1,0,0,0,1,0,0,0,1,0,0] },
+  { id:"CAN",  name:"CANADÁ",           iso:"ca",     flag:"🇨🇦", count:20, initial:[1,1,0,0,0,1,0,0,0,1,0,0,0,1,1,0,0,0,0,0] },
+  { id:"BIH",  name:"BÓSNIA",           iso:"ba",     flag:"🇧🇦", count:20, initial:[0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"QAT",  name:"QATAR",            iso:"qa",     flag:"🇶🇦", count:20, initial:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"SUI",  name:"SUÍÇA",            iso:"ch",     flag:"🇨🇭", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"BRA",  name:"BRASIL",           iso:"br",     flag:"🇧🇷", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,1,0,1,0,1,1,0,0,0] },
+  { id:"MAR",  name:"MARROCOS",         iso:"ma",     flag:"🇲🇦", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0] },
+  { id:"HAI",  name:"HAITI",            iso:"ht",     flag:"🇭🇹", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0] },
+  { id:"SCO",  name:"ESCÓCIA",          iso:"gb-sct", flag:"🏴󠁧󠁢󠁳󠁣󠁴󠁿", count:20, initial:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"USA",  name:"EUA",              iso:"us",     flag:"🇺🇸", count:20, initial:[0,0,0,0,0,0,0,1,0,0,0,1,1,0,0,1,1,0,0,1] },
+  { id:"PAR",  name:"PARAGUAI",         iso:"py",     flag:"🇵🇾", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,1,0,0,0] },
+  { id:"AUS",  name:"AUSTRÁLIA",        iso:"au",     flag:"🇦🇺", count:20, initial:[0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"TUR",  name:"TURQUIA",          iso:"tr",     flag:"🇹🇷", count:20, initial:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0] },
+  { id:"GER",  name:"ALEMANHA",         iso:"de",     flag:"🇩🇪", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"CUW",  name:"CURAÇAO",          iso:"cw",     flag:"🇨🇼", count:20, initial:[0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"CIV",  name:"COSTA DO MARFIM",  iso:"ci",     flag:"🇨🇮", count:20, initial:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"ECU",  name:"EQUADOR",          iso:"ec",     flag:"🇪🇨", count:20, initial:[0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,0,1,0] },
+  { id:"NED",  name:"HOLANDA",          iso:"nl",     flag:"🇳🇱", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1,0] },
+  { id:"JPN",  name:"JAPÃO",            iso:"jp",     flag:"🇯🇵", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"SWE",  name:"SUÉCIA",           iso:"se",     flag:"🇸🇪", count:20, initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,1,0,0] },
+  { id:"TUN",  name:"TUNÍSIA",          iso:"tn",     flag:"🇹🇳", count:20, initial:[0,0,0,0,0,0,0,0,0,0,1,1,0,0,0,0,0,0,0,0] },
+  { id:"BEL",  name:"BÉLGICA",          iso:"be",     flag:"🇧🇪", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"EGY",  name:"EGITO",            iso:"eg",     flag:"🇪🇬", count:20, initial:[1,1,0,1,0,1,0,0,0,0,0,0,0,0,0,0,0,1,0,0] },
+  { id:"IRN",  name:"IRÃ",              iso:"ir",     flag:"🇮🇷", count:20, initial:[0,0,0,0,0,0,1,0,0,0,1,0,0,1,0,0,0,0,0,0] },
+  { id:"NZL",  name:"NOVA ZELÂNDIA",    iso:"nz",     flag:"🇳🇿", count:20, initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,1,0,0,1,1] },
+  { id:"ESP",  name:"ESPANHA",          iso:"es",     flag:"🇪🇸", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"CPV",  name:"CABO VERDE",       iso:"cv",     flag:"🇨🇻", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"KSA",  name:"ARÁBIA SAUDITA",   iso:"sa",     flag:"🇸🇦", count:20, initial:[0,0,0,0,1,0,0,0,1,1,0,0,0,0,1,0,0,0,1,0] },
+  { id:"URU",  name:"URUGUAI",          iso:"uy",     flag:"🇺🇾", count:20, initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0] },
+  { id:"FRA",  name:"FRANÇA",           iso:"fr",     flag:"🇫🇷", count:20, initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0,0] },
+  { id:"SEN",  name:"SENEGAL",          iso:"sn",     flag:"🇸🇳", count:20, initial:[0,0,1,0,0,0,1,0,0,0,1,0,0,0,0,0,0,0,0,0] },
+  { id:"IRQ",  name:"IRAQUE",           iso:"iq",     flag:"🇮🇶", count:20, initial:[0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"NOR",  name:"NORUEGA",          iso:"no",     flag:"🇳🇴", count:20, initial:[0,0,0,0,0,0,0,1,0,0,0,1,0,0,0,0,1,0,1,0] },
+  { id:"ARG",  name:"ARGENTINA",        iso:"ar",     flag:"🇦🇷", count:20, initial:[0,0,0,0,0,0,1,0,0,0,0,0,0,0,1,0,0,0,1,0] },
+  { id:"ALG",  name:"ARGÉLIA",          iso:"dz",     flag:"🇩🇿", count:20, initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,0,0] },
+  { id:"AUT",  name:"ÁUSTRIA",          iso:"at",     flag:"🇦🇹", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"JOR",  name:"JORDÂNIA",         iso:"jo",     flag:"🇯🇴", count:20, initial:[0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"POR",  name:"PORTUGAL",         iso:"pt",     flag:"🇵🇹", count:20, initial:[0,1,0,0,0,1,0,1,0,1,0,1,0,0,1,0,1,0,1,0] },
+  { id:"COD",  name:"CONGO",            iso:"cd",     flag:"🇨🇩", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"UZB",  name:"UZBEQUISTÃO",      iso:"uz",     flag:"🇺🇿", count:20, initial:[1,0,0,0,1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"COL",  name:"COLÔMBIA",         iso:"co",     flag:"🇨🇴", count:20, initial:[1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
+  { id:"ING",  name:"INGLATERRA",       iso:"gb-eng", flag:"🏴󠁧󠁢󠁥󠁮󠁧󠁿", count:20, initial:[0,0,1,0,0,0,1,0,0,0,0,0,1,0,0,0,0,0,0,0] },
+  { id:"CRO",  name:"CROÁCIA",          iso:"hr",     flag:"🇭🇷", count:20, initial:[0,0,0,0,0,0,0,0,0,0,0,0,1,0,0,0,0,0,0,0] },
+  { id:"GHA",  name:"GANA",             iso:"gh",     flag:"🇬🇭", count:20, initial:[1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,1,0,0,0,0] },
+  { id:"PAN",  name:"PANAMÁ",           iso:"pa",     flag:"🇵🇦", count:20, initial:[0,1,0,0,0,1,0,0,0,1,0,0,0,0,1,0,0,0,1,0] },
+  { id:"COCA", name:"COCA-COLA",        iso:null,     flag:"🥤", count:14, initial:[0,0,0,0,0,0,0,0,0,0,0,0,0,0] },
 ];
 
-const TOTAL = TEAMS.length * 20; // 980
+const TOTAL = TEAMS.reduce((s, t) => s + t.count, 0);
 const STORAGE_KEY = 'copa2026_v2';
 
 // ─── STATE ───────────────────────────────────────────────────────
@@ -665,7 +666,7 @@ function teamStats(t) {
     const v = state[`${t.id}_${i}`] || 0;
     if (v >= 1) { have++; dup += v - 1; }
   });
-  return { have, dup, miss: 20 - have };
+  return { have, dup, miss: t.count - have };
 }
 
 function stickerVal(cnt) {
@@ -680,13 +681,13 @@ function updateStickerEl(el, key) {
 
 function updateTeamCard(card, t) {
   const { have, dup, miss } = teamStats(t);
-  const pct = Math.round((have / 20) * 100);
+  const pct = Math.round((have / t.count) * 100);
   card.querySelector('.team-mini-fill').style.width = pct + '%';
   const sub = card.querySelector('.team-sub span');
   sub.innerHTML = `${dup > 0 ? `<span style="color:var(--orange-dup)">↺${dup} repetida${dup>1?'s':''}</span> · ` : ''}${miss} faltam`;
   const badge = card.querySelector('.team-badge');
-  badge.className = `team-badge ${have === 20 ? 'badge-good' : have > 0 ? 'badge-part' : 'badge-empty'}`;
-  badge.textContent = have === 20 ? '✓ Completo' : `${have}/20`;
+  badge.className = `team-badge ${have === t.count ? 'badge-good' : have > 0 ? 'badge-part' : 'badge-empty'}`;
+  badge.textContent = have === t.count ? '✓ Completo' : `${have}/${t.count}`;
 }
 
 function renderTeams() {
@@ -716,11 +717,11 @@ function renderTeams() {
   container.innerHTML = '';
   filtered.forEach((t, idx) => {
     const { have, dup, miss } = teamStats(t);
-    const pct = Math.round((have / 20) * 100);
+    const pct = Math.round((have / t.count) * 100);
     const isOpen = openSet.has(t.id);
 
-    const badgeClass = have === 20 ? 'badge-good' : have > 0 ? 'badge-part' : 'badge-empty';
-    const badgeText  = have === 20 ? '✓ Completo' : `${have}/20`;
+    const badgeClass = have === t.count ? 'badge-good' : have > 0 ? 'badge-part' : 'badge-empty';
+    const badgeText  = have === t.count ? '✓ Completo' : `${have}/${t.count}`;
 
     const card = document.createElement('div');
     card.className = `team-card${isOpen ? ' open' : ''}`;
@@ -749,8 +750,9 @@ function renderTeams() {
         <div class="stickers-grid" data-team="${t.id}">
           ${t.initial.map((_, i) => {
             const cnt = state[`${t.id}_${i}`] || 0;
+            const num = t.zeroStart ? String(i).padStart(2,'0') : i + 1;
             return `<div class="sticker" data-count="${cnt}" data-team="${t.id}" data-idx="${i}">
-              <span class="sticker-num">${i+1}</span>
+              <span class="sticker-num">${num}</span>
               <span class="sticker-val">${stickerVal(cnt)}</span>
               <button class="sticker-minus" title="Remover uma">−</button>
             </div>`;
@@ -778,7 +780,8 @@ document.getElementById('teams-container').addEventListener('click', e => {
     const cnt = state[key] || 0;
     if (cnt === 0) return;
     const t = TEAMS.find(t => t.id === team);
-    const label = `${t.name} #${+idx + 1}`;
+    const sNum = t.zeroStart ? String(+idx).padStart(2,'0') : +idx + 1;
+    const label = `${t.name} #${sNum}`;
     const msg = cnt === 1
       ? `Remover a figurinha ${label}? Ela voltará para "Falta".`
       : `Remover uma repetida de ${label}? Ficará com ${cnt - 1}.`;
@@ -799,7 +802,8 @@ document.getElementById('teams-container').addEventListener('click', e => {
   const key = `${team}_${idx}`;
   const cnt = state[key] || 0;
   const t = TEAMS.find(t => t.id === team);
-  const label = `${t.name} #${+idx + 1}`;
+  const sNum = t.zeroStart ? String(+idx).padStart(2,'0') : +idx + 1;
+  const label = `${t.name} #${sNum}`;
 
   if (cnt >= 1) {
     const plural = cnt > 1 ? `${cnt} cópias` : '1 cópia';
