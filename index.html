@@ -487,6 +487,7 @@ body {
   <button class="btn-sync-setup" id="btn-export">📤 Exportar</button>
   <button class="btn-sync-setup" id="btn-import">📥 Importar</button>
   <button class="btn-sync-setup" id="btn-dups" style="color:var(--orange-dup);border-color:var(--orange-dup)">📋 Repetidas</button>
+  <button class="btn-sync-setup" id="btn-miss" style="color:#60a5fa;border-color:#60a5fa">📋 Faltam</button>
 </div>
 
 <div id="controls">
@@ -574,6 +575,20 @@ body {
       <button class="btn-primary" id="btn-fb-connect">Conectar e Sincronizar</button>
       <button class="btn-secondary" id="btn-fb-disconnect" style="display:none">Desconectar</button>
       <button class="btn-secondary" onclick="closeModal('modal-sync')">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── MODAL: LISTA DE FALTAM ── -->
+<div class="modal-overlay" id="modal-miss">
+  <div class="modal" style="max-width:520px">
+    <div class="modal-title">📋 Figurinhas que Faltam</div>
+    <div class="modal-sub" id="miss-sub">Carregando…</div>
+    <textarea class="modal-code" id="miss-text" readonly style="min-height:260px;font-size:.78rem;line-height:1.6"></textarea>
+    <div class="modal-actions">
+      <button class="btn-primary" id="btn-miss-txt">⬇ Baixar .txt</button>
+      <button class="btn-primary" id="btn-miss-print" style="background:#7c3aed">🖨 Imprimir / PDF</button>
+      <button class="btn-secondary" onclick="closeModal('modal-miss')">Fechar</button>
     </div>
   </div>
 </div>
@@ -1057,6 +1072,76 @@ document.getElementById('btn-fb-disconnect').addEventListener('click', () => {
 });
 
 function genId() { return Math.random().toString(36).slice(2, 10).toUpperCase(); }
+
+// ─── LISTA DE FALTAM ──────────────────────────────────────────────
+function buildMissList() {
+  const date = new Date().toLocaleDateString('pt-BR');
+  const lines = [
+    'ÁLBUM COPA 2026 — FIGURINHAS QUE FALTAM',
+    `Gerado em: ${date}`,
+    '='.repeat(48),
+    ''
+  ];
+  let totalMiss = 0;
+
+  TEAMS.forEach(t => {
+    const sigla = getSigla(t);
+    const missing = [];
+    for (let i = 0; i < t.count; i++) {
+      const v = state[`${t.id}_${i}`] || 0;
+      if (v === 0) {
+        const num = t.zeroStart ? String(i).padStart(2,'0') : String(i + 1).padStart(2,' ');
+        missing.push(num);
+        totalMiss++;
+      }
+    }
+    if (missing.length > 0) {
+      lines.push(`[${sigla}] ${t.name} — ${missing.length} faltando`);
+      // agrupar em linhas de 10 números
+      for (let i = 0; i < missing.length; i += 10) {
+        lines.push('  ' + missing.slice(i, i + 10).map(n => `${sigla} ${n}`).join('  '));
+      }
+      lines.push('');
+    }
+  });
+
+  if (totalMiss === 0) {
+    lines.push('Parabéns! Álbum completo! 🏆');
+  } else {
+    lines.push('='.repeat(48));
+    lines.push(`TOTAL: ${totalMiss} figurinha${totalMiss > 1 ? 's' : ''} faltando`);
+  }
+
+  return { text: lines.join('\n'), totalMiss };
+}
+
+document.getElementById('btn-miss').addEventListener('click', () => {
+  const { text, totalMiss } = buildMissList();
+  document.getElementById('miss-text').value = text;
+  document.getElementById('miss-sub').textContent =
+    totalMiss === 0
+      ? 'Parabéns! Seu álbum está completo! 🏆'
+      : `Você ainda precisa de ${totalMiss} figurinha${totalMiss > 1 ? 's' : ''}.`;
+  openModal('modal-miss');
+});
+
+document.getElementById('btn-miss-txt').addEventListener('click', () => {
+  const text = document.getElementById('miss-text').value;
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href = url;
+  a.download = `faltam_copa2026_${new Date().toLocaleDateString('pt-BR').replace(/\//g,'-')}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Arquivo .txt baixado! ✓');
+});
+
+document.getElementById('btn-miss-print').addEventListener('click', () => {
+  const text = document.getElementById('miss-text').value;
+  document.getElementById('print-area').textContent = text;
+  window.print();
+});
 
 // ─── LISTA DE REPETIDAS ───────────────────────────────────────────
 function getSigla(t) {
