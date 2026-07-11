@@ -1575,11 +1575,11 @@ const SEED_GROUP_RESULTS = {
 };
 
 function seedResults() {
-  let added = 0;
+  // Seed é verdade absoluta — sempre sobrescreve para garantir dados corretos
   Object.entries(SEED_GROUP_RESULTS).forEach(([id, r]) => {
-    if (!results[id]) { results[id] = r; added++; }
+    results[id] = r;
   });
-  if (added > 0) { saveState(); }
+  saveState();
 }
 
 // ─────────────────────────────────────────────
@@ -1657,16 +1657,11 @@ const SEED_KO_RESULTS = {
 };
 
 function seedKoResults() {
-  let added = 0;
+  // Seed é verdade absoluta para todos os resultados confirmados — sempre sobrescreve
   Object.entries(SEED_KO_RESULTS).forEach(([id, r]) => {
-    const cur = koResults[id];
-    // Aplica seed se: não existe, não tem vencedor, não tem homeTeam, ou placar diferente do seed
-    if (!cur || !cur.winner || !cur.homeTeam ||
-        (cur.home !== r.home || cur.away !== r.away)) {
-      koResults[id] = r; added++;
-    }
+    koResults[id] = r;
   });
-  if (added > 0) { saveState(); }
+  saveState();
 }
 
 // ─────────────────────────────────────────────
@@ -2171,7 +2166,7 @@ function _processEspnEvents(events) {
       if (ph_hn && !ph_an && (an===homePt||an===awayPt)) return true;
       return false;
     });
-    if (km && !koResults[km.id]) {
+    if (km && (!koResults[km.id] || !koResults[km.id].winner)) {
       const hn_r = koTeamName(km.id,'home',km.hl);
       // rev: true se o time que é "home" no nosso app aparece como "away" na ESPN
       const rev = (!isPlaceholder(hn_r) && hn_r === awayPt)
@@ -2220,19 +2215,12 @@ function _processEspnEvents(events) {
   return anyNew;
 }
 
-// Busca resultados históricos da fase de grupos (11 a 27 de junho)
+// Busca resultados de todas as datas da Copa — fase de grupos + mata-mata até hoje
 async function syncHistoricalScores() {
   if (_syncDone) return;
   const banner = document.getElementById('syncBanner');
   if (banner) banner.style.display = 'flex';
-  const groupResultsCount = Object.keys(results).length;
-  // Só faz a busca se tiver poucos resultados salvos
-  if (groupResultsCount >= 60) {
-    _syncDone = true;
-    if (banner) banner.style.display = 'none';
-    return;
-  }
-  // Datas da fase de grupos: 11/06 a 28/06
+
   const fetchDate = async (dateStr) => {
     try {
       const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dateStr}&limit=20`;
@@ -2242,16 +2230,24 @@ async function syncHistoricalScores() {
       return data.events || [];
     } catch(e) { return []; }
   };
+
+  // Gera todas as datas desde o início da Copa (11/06) até hoje
+  const start = new Date(2026, 5, 11); // 11 junho 2026
+  const today = new Date();
   const dates = [];
-  for (let d = 11; d <= 28; d++) {
-    dates.push(`202606${d < 10 ? '0'+d : d}`);
+  for (let d = new Date(start); d <= today; d.setDate(d.getDate() + 1)) {
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    dates.push(`${y}${m}${dd}`);
   }
-  // Busca em paralelo (4 por vez para não sobrecarregar)
+
+  // Busca em paralelo (4 por vez)
   let anyNew = false;
   for (let i = 0; i < dates.length; i += 4) {
     const batch = dates.slice(i, i+4);
-    const results_batch = await Promise.all(batch.map(fetchDate));
-    results_batch.forEach(events => {
+    const batched = await Promise.all(batch.map(fetchDate));
+    batched.forEach(events => {
       if (_processEspnEvents(events)) anyNew = true;
     });
   }
@@ -2263,16 +2259,18 @@ async function syncHistoricalScores() {
 async function fetchLiveScores() {
   try {
     const fmtDate = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
-    const now  = new Date();
-    const prev = new Date(now); prev.setDate(prev.getDate() - 1);
-    // Busca hoje + ontem em paralelo: captura jogos 00h BRT que no ESPN ficam no dia anterior (EDT)
-    const [r1, r2] = await Promise.all([
-      fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${fmtDate(now)}&limit=20`, {cache:'no-cache'}),
-      fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${fmtDate(prev)}&limit=20`, {cache:'no-cache'}),
-    ]);
+    const now = new Date();
+    // Busca hoje + últimos 6 dias: garante que resultados do mata-mata (jogos a cada 2-3 dias) sejam sempre capturados
+    const fetches = [];
+    for (let i = 0; i <= 6; i++) {
+      const d = new Date(now); d.setDate(d.getDate() - i);
+      fetches.push(fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${fmtDate(d)}&limit=20`, {cache:'no-cache'}));
+    }
+    const responses = await Promise.all(fetches);
     const allEvents = [];
-    if (r1.ok) { const d = await r1.json(); allEvents.push(...(d.events||[])); }
-    if (r2.ok) { const d = await r2.json(); allEvents.push(...(d.events||[])); }
+    for (const r of responses) {
+      if (r.ok) { const d = await r.json(); allEvents.push(...(d.events||[])); }
+    }
 
     const newLive = {};
     allEvents.forEach(ev => {
