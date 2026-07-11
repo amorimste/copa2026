@@ -2223,11 +2223,8 @@ async function syncHistoricalScores() {
 
   const fetchDate = async (dateStr) => {
     try {
-      const url = `https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dateStr}&limit=20`;
-      const r = await fetch(url, {cache:'no-cache'});
-      if (!r.ok) return [];
-      const data = await r.json();
-      return data.events || [];
+      const r = await fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dateStr}&limit=20`, {cache:'no-cache'});
+      return r.ok ? (await r.json()).events || [] : [];
     } catch(e) { return []; }
   };
 
@@ -2260,17 +2257,15 @@ async function fetchLiveScores() {
   try {
     const fmtDate = d => `${d.getFullYear()}${String(d.getMonth()+1).padStart(2,'0')}${String(d.getDate()).padStart(2,'0')}`;
     const now = new Date();
-    // Busca hoje + últimos 6 dias: garante que resultados do mata-mata (jogos a cada 2-3 dias) sejam sempre capturados
-    const fetches = [];
-    for (let i = 0; i <= 6; i++) {
-      const d = new Date(now); d.setDate(d.getDate() - i);
-      fetches.push(fetch(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${fmtDate(d)}&limit=20`, {cache:'no-cache'}));
-    }
-    const responses = await Promise.all(fetches);
-    const allEvents = [];
-    for (const r of responses) {
-      if (r.ok) { const d = await r.json(); allEvents.push(...(d.events||[])); }
-    }
+    // Busca hoje + últimos 6 dias. Cada requisição tem fallback individual para não quebrar Promise.all
+    const safeGet = async (url) => {
+      try { const r = await fetch(url, {cache:'no-cache'}); return r.ok ? await r.json() : {}; }
+      catch(e) { return {}; }
+    };
+    const days = [];
+    for (let i = 0; i <= 6; i++) { const d = new Date(now); d.setDate(d.getDate()-i); days.push(fmtDate(d)); }
+    const jsons = await Promise.all(days.map(dt => safeGet(`https://site.api.espn.com/apis/site/v2/sports/soccer/fifa.world/scoreboard?dates=${dt}&limit=20`)));
+    const allEvents = jsons.flatMap(j => j.events || []);
 
     const newLive = {};
     allEvents.forEach(ev => {
@@ -2687,32 +2682,29 @@ function renderBracketView() {
 function refreshAll() {
   renderGroups();
   updatePhaseIndicator();
+  // Sempre re-renderiza todas as seções de mata-mata (dados podem ter mudado)
+  renderKoRound('r32','r32Container');
+  renderKoRound('oitavas','oitavasContainer');
+  renderKoRound('quartas','quartasContainer');
+  renderKoRound('semis','semisContainer');
+  renderFinalTab();
+  renderBracketView();
+  renderThirds();
   const activeTab = document.querySelector('.tab-content.active');
-  if (activeTab) {
-    switch(activeTab.id) {
-      case 'tab-melhores3':   renderThirds(); break;
-      case 'tab-r32':         renderKoRound('r32','r32Container'); break;
-      case 'tab-oitavas':     renderKoRound('oitavas','oitavasContainer'); break;
-      case 'tab-quartas':     renderKoRound('quartas','quartasContainer'); break;
-      case 'tab-semis':       renderKoRound('semis','semisContainer'); break;
-      case 'tab-final':       renderFinalTab(); break;
-      case 'tab-hoje':        renderTodayTab(); break;
-      case 'tab-chaveamento': renderBracketView(); break;
-    }
-  }
+  if (activeTab && activeTab.id === 'tab-hoje') renderTodayTab();
 }
 
 // ─────────────────────────────────────────────
 // INIT
 // ─────────────────────────────────────────────
 loadState();
-seedResults();       // preenche resultados confirmados da fase de grupos
-seedKoResults();     // preenche resultados confirmados da Rodada de 32
-renderGroups();
+seedResults();       // preenche resultados confirmados da fase de grupos (sempre sobrescreve)
+seedKoResults();     // preenche resultados confirmados do mata-mata (sempre sobrescreve)
+refreshAll();        // renderiza grupos + todas as fases do mata-mata + chaveamento
 updateBrasilBanner();
 updatePhaseIndicator();
-startGlobalPolling();
-syncHistoricalScores(); // complementa com ESPN se tiver mais dados
+startGlobalPolling();        // polling ESPN a cada 3min (últimos 7 dias)
+syncHistoricalScores();      // varredura inicial de todas as datas da Copa
 </script>
 </body>
 </html>
